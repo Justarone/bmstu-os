@@ -4,7 +4,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define N 1
+#define N 2
 #define SECONDS 3
 
 int main()

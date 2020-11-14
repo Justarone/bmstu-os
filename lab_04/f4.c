@@ -20,10 +20,13 @@ int main()
 {
     int fd[2];
     int pid;
-    pipe(fd);
+    if (pipe(fd) == -1) {
+        printf("Something went wrong with pipe!");
+        return 1;
+    }
 
     for (size_t i = 0; i < N; i++) {
-        if ((pid = fork()) < 0) {
+        if ((pid = fork()) == -1) {
             err_sys("Error fork()");
         } else if (pid == 0) {
             close(fd[0]);
