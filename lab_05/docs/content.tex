@@ -1,0 +1,84 @@
+\chapter{Задача <<Производство-потребление>>}
+
+\section{Вывод программы}
+
+На рисунках \ref{img:pc55} -- \ref{img:pc83} показан вывод программы, реализующей задачу <<Производство-потребление>> при разных значениях задержки потребителей и производителей. Примечание: для удобства \textbf{\color{forestgreen}производители} обозначены зеленым, в то время как \textbf{\color{red}потребители} --- красным; в скобках указано время последнего сна.
+
+\img{165mm}{pc55}{<<Производство-потребление>> при задержках: потребители $\in [0, 5)$, производители $\in [0, 5)$}
+\clearpage
+\img{240mm}{pc38}{<<Производство-потребление>> при задержках: потребители $\in [0, 3)$, производители $\in [0, 8)$}
+\clearpage
+\img{240mm}{pc83}{<<Производство-потребление>> при задержках: потребители $\in [0, 8)$, производители $\in [0, 3)$}
+\clearpage
+
+\section{Листинги кода}
+
+В листингах \ref{lst:buffer} -- \ref{lst:main1} представлены исходные коды программы, реализующей задачу <<Производство-потребление>>.
+
+\begin{lstinputlisting}[
+        caption={Реализация очереди, на основе циклического массива (буфера)},
+        label={lst:buffer},
+        linerange={1},
+        style={cstyle}
+    ]{../produce_consume/src/buffer.c}
+\end{lstinputlisting}
+
+\begin{lstinputlisting}[
+        caption={Реализация ``производителей'' и ``потребителей''},
+        label={lst:runners},
+        linerange={1},
+        style={cstyle}
+    ]{../produce_consume/src/runners.c}
+\end{lstinputlisting}
+
+\begin{lstinputlisting}[
+        caption={Файл с константными значениями},
+        label={lst:constants1},
+        linerange={1},
+        style={cstyle}
+    ]{../produce_consume/include/constants.h}
+\end{lstinputlisting}
+
+\begin{lstinputlisting}[
+        caption={Главный файл программы},
+        label={lst:main1},
+        linerange={1},
+        style={cstyle}
+    ]{../produce_consume/src/main.c}
+\end{lstinputlisting}
+
+\chapter{Задача <<Читатели-Писатели>>}
+
+\section{Вывод программы}
+
+На рисунке \ref{img:rw} показан вывод программы, реализующей задачу <<Читатели-писатели>>. Примечание: для удобства \textbf{\color{forestgreen}писатели} обозначены зеленым, в то время как \textbf{\color{red}читатели} --- красным; в скобках указано время последнего сна.
+
+\img{180mm}{rw}{<<Читатели-писатели>>}
+
+\section{Листинги кода}
+
+В листингах \ref{lst:io_obj} -- \ref{lst:main2} представлены исходные коды программы, реализующей задачу <<Производство-потребление>>.
+
+\begin{lstinputlisting}[
+        caption={Реализация ``читателей'' и ``писателей''},
+        label={lst:io_obj},
+        linerange={1},
+        style={cstyle}
+    ]{../read_write/src/io_objects.c}
+\end{lstinputlisting}
+
+\begin{lstinputlisting}[
+        caption={Файл с константными значениями},
+        label={lst:constants2},
+        linerange={1},
+        style={cstyle}
+    ]{../read_write/include/constants.h}
+\end{lstinputlisting}
+
+\begin{lstinputlisting}[
+        caption={Главный файл программы},
+        label={lst:main2},
+        linerange={1},
+        style={cstyle}
+    ]{../read_write/src/main.c}
+\end{lstinputlisting}
