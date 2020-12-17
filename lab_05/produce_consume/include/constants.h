@@ -1,13 +1,10 @@
 #ifndef __CONSTANTS__
 #define __CONSTANTS__
 
-#include <sys/stat.h>
-#include <sys/sem.h>
-
 #define PERMS S_IRWXU | S_IRWXG | S_IRWXO
 #define KEY IPC_PRIVATE
 #define N 64
-#define ITERATIONS_AMOUNT 5
+#define ITERATIONS_AMOUNT 8
 #define CONSUMERS_AMOUNT 3
 #define PRODUCERS_AMOUNT 3
 
@@ -35,7 +32,10 @@
 #define FALSE 0
 
 // Time [TIME_FROM, TIME_FROM + TIME_RANGE)
-#define TIME_FROM 1
-#define TIME_RANGE 5
+
+#define PTIME_FROM 1
+#define PTIME_RANGE 2
+#define CTIME_FROM 1
+#define CTIME_RANGE 7
 
 #endif // __CONSTANTS__

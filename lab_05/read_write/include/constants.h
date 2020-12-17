@@ -1,14 +1,11 @@
 #ifndef __CONSTANTS__
 #define __CONSTANTS__
 
-#include <sys/stat.h>
-#include <sys/sem.h>
-
 #define PERMS S_IRWXU | S_IRWXG | S_IRWXO
 #define KEY IPC_PRIVATE
 #define ITERATIONS_AMOUNT 50
-#define WRITERS_AMOUNT 5
-#define READERS_AMOUNT 6
+#define WRITERS_AMOUNT 3
+#define READERS_AMOUNT 5
 
 #define SEMS_AMOUNT 4
 #define ACT_RDRS 0

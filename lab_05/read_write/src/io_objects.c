@@ -55,7 +55,7 @@ int run_reader(int* const shared_counter, const int sid, const int reader_id)
         }
         // critical section
         int val = *shared_counter;
-        printf("\e[1;31mReader #%d read:  %5d\e[0m (slept %ds)\n", reader_id, val, sleep_time);
+        printf(" \e[1;31mReader #%d read:  %5d\e[0m (slept %ds)\n", reader_id, val, sleep_time);
         // critical section ends
         if (!stop_read(sid)) {
             perror("Something went wrong with stop_read!");
@@ -91,7 +91,7 @@ int run_writer(int* const shared_counter, const int sid, const int writer_id)
         }
         // critical section
         int val = ++(*shared_counter);
-        printf("\e[1;32mWriter #%d write: %5d\e[0m (slept %ds)\n", writer_id, val, sleep_time);
+        printf(" \e[1;32mWriter #%d write: %5d\e[0m (slept %ds)\n", writer_id, val, sleep_time);
         // critical section ends
         if (!stop_write(sid)) {
             perror("Something went wrong with stop_write!");
