@@ -106,26 +106,21 @@ int main(void) {
         perror("Failed call of CreateEvent");
         return CREATE_EVENT_FAILED;
     }
-
     // CreateThread(attr, stack_size, begin_func, func_param, flags, pointer_where_to_return_id)
     for (int i = 0; i < READERS_AMOUNT; ++i) 
         if ((readers_threads[i] = CreateThread(NULL, 0, run_reader, (LPVOID)i, 0, NULL)) == NULL) {
             perror("Failed call of CreateThread");
             return CREATE_THREAD_FAILED;
     }
-
-
     for (int i = 0; i < WRITERS_AMOUNT; i++) 
         if ((writers_threads[i] = CreateThread(NULL, 0, run_writer, (LPVOID)i, 0, NULL)) == NULL) {
             perror("Failed call of CreateThread");
             return CREATE_THREAD_FAILED;
         }
 
-
     // WaitForMultipleObjects(array_size, pointer_to_array, all?, how_long_wait)
     WaitForMultipleObjects(READERS_AMOUNT, readers_threads, TRUE, INFINITE);
     WaitForMultipleObjects(WRITERS_AMOUNT, writers_threads, TRUE, INFINITE);
-
     CloseHandle(mutex);
     CloseHandle(can_read);
     CloseHandle(can_write);
