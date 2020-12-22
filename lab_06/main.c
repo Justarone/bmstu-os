@@ -28,7 +28,7 @@ int value = 0;
 void start_read(void) {
     InterlockedIncrement(&waiting_readers);
     // WaitForSingleObject(object, how_long_wait)
-    if (active_writer || WaitForSingleObject(can_write, 0) == WAIT_OBJECT_0) 
+    if (active_writer || (WaitForSingleObject(can_write, 0) == WAIT_OBJECT_0 && waiting_writers)) 
         WaitForSingleObject(can_read, INFINITE);
     // fake mutex
     WaitForSingleObject(mutex, INFINITE);
