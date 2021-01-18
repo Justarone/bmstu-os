@@ -1,2 +1,2 @@
-^report/ linguist-documentation
-^docs/ linguist-documentation
+*/report/ linguist-documentation
+*/docs/ linguist-documentation
