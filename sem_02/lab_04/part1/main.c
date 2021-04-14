@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#include "const.h"
+
 #define BUF_SIZE 10000
 
 #define NO_ACCESS 1
@@ -55,7 +57,7 @@ void print_fd(const int pid) {
     while ((readDir = readdir(dir)) != NULL) {
         if ((strcmp(readDir->d_name, ".") != 0) && (strcmp(readDir->d_name, "..") != 0)) {
             sprintf(path, "%s%s", pathToOpen, readDir->d_name);
-            readlink(path, string, PATH_MAX);
+            int _read_len = readlink(path, string, PATH_MAX);
             printf("%s -> %s\n", readDir->d_name, string);
         }
     }
@@ -74,12 +76,70 @@ void print_stat(const int pid) {
 
     printf("\nSTAT: \n");
 
-    for (int i = 1; token != NULL; i++) {
-        printf("%d. %s \n", i, token);
+    for (int i = 0; token != NULL; i++) {
+        printf(NO_DESCR[i], token);
         token = strtok(NULL, " ");
     }
 
     fclose(file);
+}
+
+void print_statm(const int pid) {
+    char pathToOpen[PATH_MAX];
+    snprintf(pathToOpen, PATH_MAX, "/proc/%d/statm", pid);
+    FILE *file = fopen(pathToOpen, "r");
+    char buf[BUF_SIZE];
+    fread(buf, 1, BUF_SIZE, file);
+
+    char *token = strtok(buf, " ");
+    printf("\nSTATM: \n");
+    for (int i = 0; token != NULL; i++) {
+        // FIXME: add description
+        printf("%s\n", token);
+        token = strtok(NULL, " ");
+    }
+    fclose(file);
+}
+
+void print_cwd(const int pid) {
+    char pathToOpen[PATH_MAX];
+    snprintf(pathToOpen, PATH_MAX, "/proc/%d/cwd", pid);
+    char buf[BUF_SIZE] = {'\0'};
+    int _read_len = readlink(pathToOpen, buf, BUF_SIZE);
+    printf("\nCWD:\n");
+    printf("%s\n", buf);
+}
+
+void print_exe(const int pid) {
+    char pathToOpen[PATH_MAX];
+    snprintf(pathToOpen, PATH_MAX, "/proc/%d/exe", pid);
+    char buf[BUF_SIZE] = {'\0'};
+    int _read_len = readlink(pathToOpen, buf, BUF_SIZE);
+    printf("\nEXE:\n");
+    printf("%s\n", buf);
+}
+
+void print_maps(const int pid) {
+    char pathToOpen[PATH_MAX];
+    snprintf(pathToOpen, PATH_MAX, "/proc/%d/maps", pid);
+    char buf[BUF_SIZE] = {'\0'};
+    FILE *file = fopen(pathToOpen, "r");
+    printf("\nMAPS:\n");
+    int lengthOfRead;
+    while ((lengthOfRead = fread(buf, 1, BUF_SIZE, file))) {
+        buf[lengthOfRead] = '\0';
+        printf("%s\n", buf);
+    }
+    fclose(file);
+}
+
+void print_root(const int pid) {
+    char pathToOpen[PATH_MAX];
+    snprintf(pathToOpen, PATH_MAX, "/proc/%d/root", pid);
+    char buf[BUF_SIZE] = {'\0'};
+    int _read_len = readlink(pathToOpen, buf, BUF_SIZE);
+    printf("\nROOT:\n");
+    printf("%s\n", buf);
 }
 
 int get_pid(int argc, char *argv[]) {
@@ -97,12 +157,25 @@ int get_pid(int argc, char *argv[]) {
     return pid;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     int pid = get_pid(argc, argv);
+    char c;
     print_cmdline(pid);
+    scanf("%1c", &c);
     print_environ(pid);
+    scanf("%1c", &c);
     print_fd(pid);
+    scanf("%1c", &c);
     print_stat(pid);
+    scanf("%1c", &c);
+    print_statm(pid);
+    scanf("%1c", &c);
+    print_cwd(pid);
+    scanf("%1c", &c);
+    print_exe(pid);
+    scanf("%1c", &c);
+    print_maps(pid);
+    scanf("%1c", &c);
+    print_root(pid);
     return 0;
 }
