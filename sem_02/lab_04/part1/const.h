@@ -109,4 +109,14 @@ const char *NO_DESCR[] = {
     "(51) env_end  '%s'\n",
     "(52) exit_code  '%s'\n"
 };
+
+const char *STATM_PATTERNS[] = {
+    "size     %s  (1)\n",
+    "resident %s  (2)\n",
+    "shared   %s  (3)\n",
+    "text     %s  (4)\n",
+    "lib      %s  (5)\n",
+    "data     %s  (6)\n",
+    "dt       %s  (7)\n"
+};
 #endif

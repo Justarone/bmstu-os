@@ -94,8 +94,7 @@ void print_statm(const int pid) {
     char *token = strtok(buf, " ");
     printf("\nSTATM: \n");
     for (int i = 0; token != NULL; i++) {
-        // FIXME: add description
-        printf("%s\n", token);
+        printf(STATM_PATTERNS[i], token);
         token = strtok(NULL, " ");
     }
     fclose(file);
