@@ -11,9 +11,9 @@ MODULE_AUTHOR("Perestoronin Pavel");
 
 #define MAX_BUF_SIZE PAGE_SIZE
 
-#define DIRNAME "fortunes"
-#define FILENAME "fortune"
-#define SYMLINK "fortune_link"
+#define DIRNAME "seqfiles"
+#define FILENAME "seqs"
+#define SYMLINK "seqlink"
 #define FILEPATH DIRNAME "/" FILENAME
 
 static struct proc_dir_entry *fortune_dir = NULL;
@@ -30,16 +30,17 @@ int fortune_show(struct seq_file* m, void* v) {
     int len;
     if (!next_index)
         return 0;
-    if (current_fortune >= next_index)
-        current_fortune = 0;
-    len = snprintf(tmp, MAX_BUF_SIZE, "%s\n", &cookie_buffer[current_fortune]);
+    /*if (current_fortune >= next_index)*/
+        /*current_fortune = 0;*/
+    len = snprintf(tmp, MAX_BUF_SIZE, "%s", &cookie_buffer[current_fortune]);
     seq_printf(m, "%s", tmp);
     current_fortune += len;
+    printk(KERN_INFO "+: show is called\n");
     return 0;
 }
 
 ssize_t fortune_write(struct file *filp, const char __user *buf, size_t len, loff_t *offp) {
-    if (len > MAX_BUF_SIZE - next_index +1) {
+    if (len > MAX_BUF_SIZE - next_index + 1) {
         printk(KERN_ERR "+: cookie_buffer overflow error\n");
         return -ENOSPC;
     }
@@ -47,8 +48,9 @@ ssize_t fortune_write(struct file *filp, const char __user *buf, size_t len, lof
         printk(KERN_ERR "+: copy_to_user error\n");
         return -EFAULT;
     }
-    next_index += len;
-    cookie_buffer[next_index - 1] = '\0';
+    printk(KERN_INFO "+: write is called\n");
+    next_index += len - 1;
+    cookie_buffer[next_index] = '\0';
     return len;
 }
 

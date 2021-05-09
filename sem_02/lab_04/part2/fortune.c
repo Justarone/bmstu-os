@@ -27,8 +27,11 @@ static char tmp[MAX_BUF_SIZE];
 
 ssize_t fortune_read(struct file *filp, char __user *buf, size_t count, loff_t *offp) {
     int len;
-    if (*offp > 0 || !next_index)
+    printk("+: read called\n");
+    if (*offp > 0 || !next_index) {
+        printk("+: offp case");
         return 0;
+    }
     if (current_fortune >= next_index)
         current_fortune = 0;
     len = snprintf(tmp, MAX_BUF_SIZE, "%s\n", &cookie_buffer[current_fortune]);
