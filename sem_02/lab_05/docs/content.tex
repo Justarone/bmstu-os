@@ -1,0 +1,237 @@
+\chapter*{Структура \texttt{FILE}}
+
+Структура \texttt{FILE} у меня в системе описана в файле 
+
+\texttt{/usr/include/bits/types/FILE.h}:
+
+\begin{lstlisting}[style=cstyle]
+typedef struct _IO_FILE FILE;
+\end{lstlisting}
+
+Структура \texttt{\text{\_IO\_FILE}} описана в файле 
+
+\texttt{/usr/include/bits/types/struct\_FILE.h}:
+
+\begin{lstlisting}[style=cstyle]
+struct _IO_FILE
+{
+  int _flags;		/* High-order word is _IO_MAGIC; rest is flags. */
+
+  /* The following pointers correspond to the C++ streambuf protocol. */
+  char *_IO_read_ptr;	/* Current read pointer */
+  char *_IO_read_end;	/* End of get area. */
+  char *_IO_read_base;	/* Start of putback+get area. */
+  char *_IO_write_base;	/* Start of put area. */
+  char *_IO_write_ptr;	/* Current put pointer. */
+  char *_IO_write_end;	/* End of put area. */
+  char *_IO_buf_base;	/* Start of reserve area. */
+  char *_IO_buf_end;	/* End of reserve area. */
+
+  /* The following fields are used to support backing up and undo. */
+  char *_IO_save_base; /* Pointer to start of non-current get area. */
+  char *_IO_backup_base;  /* Pointer to first valid character of backup area */
+  char *_IO_save_end; /* Pointer to end of non-current get area. */
+
+  struct _IO_marker *_markers;
+
+  struct _IO_FILE *_chain;
+
+  int _fileno;
+  int _flags2;
+  __off_t _old_offset; /* This used to be _offset but it's too small.  */
+
+  /* 1+column number of pbase(); 0 is unknown. */
+  unsigned short _cur_column;
+  signed char _vtable_offset;
+  char _shortbuf[1];
+
+  _IO_lock_t *_lock;
+#ifdef _IO_USE_OLD_IO_FILE
+};
+
+struct _IO_FILE_complete
+{
+  struct _IO_FILE _file;
+#endif
+  __off64_t _offset;
+  /* Wide character stream stuff.  */
+  struct _IO_codecvt *_codecvt;
+  struct _IO_wide_data *_wide_data;
+  struct _IO_FILE *_freeres_list;
+  void *_freeres_buf;
+  size_t __pad5;
+  int _mode;
+  /* Make sure we don't get into trouble again.  */
+  char _unused2[15 * sizeof (int) - 4 * sizeof (void *) - sizeof (size_t)];
+};
+\end{lstlisting}
+
+\chapter{Первая программа}
+
+\section{Код}
+
+\subsection{Один поток}
+
+\begin{lstinputlisting}[
+        style=cstyle,
+        caption={Первая программа с одним потоком},
+        label={lst:1}
+    ]{../src/p1.c}
+\end{lstinputlisting}
+
+\subsection{Два потока}
+
+\begin{lstinputlisting}[
+        style=cstyle,
+        caption={Первая программа с двумя потоками},
+        label={lst:1mult}
+    ]{../src/p1mult.c}
+\end{lstinputlisting}
+
+\clearpage
+
+\section{Результат и анализ}
+
+\subsection{Связь структур в 1 программе}
+
+\imgw{170mm}{sp1}{Связь структур данных в 1 программе}
+
+\subsection{С одним потоком}
+
+\imgw{150mm}{p1}{Результат работы 1 программы с 1 потоком}
+
+\subsection{С двумя потоками}
+
+\imgw{150mm}{p1mult}{Результат работы 1 программы с 2 потоками}
+
+\clearpage
+
+\subsection{Анализ}
+
+Изначально в данной программе с помощью системного вызова \texttt{open()} создается файловый дескриптор \texttt{fd} для файла \texttt{alphabet.txt} с правами доступа на чтение (\texttt{O\_RDONLY}), этому файловому дескриптору присваивается значение 3 (потому что 0, 1, 2 заняты \texttt{stdin}, \texttt{stdout} и \texttt{stderr} соответственно). В это же время у \texttt{struct files\_struct} (можно найти в \texttt{struct task\_struct} для текущего процесса (структура ядра), поле \texttt{files}) поле \texttt{fd[3]} начинает указывать на \texttt{struct file}, связанный с \texttt{struct inode}, соответствующий файлу с именем \texttt{alphabet.txt}.
+
+Далее, с помощью вызова функции стандартной библиотеки \texttt{fdopen()}, создаются 2 структуры \texttt{FILE} (\texttt{fs1}, \texttt{fs2}), поле \texttt{\_fileno} становится равным значению 3.
+
+Затем с помощью вызова функции \texttt{setvbuf} создаются буферы для обоих структур \texttt{FILE}, в качестве аргумента функция получает буфер, размер буфера, а также стратегию буферизации (по строчкам (то есть до ближайшего символа '\n') или полностью заполняя буфер). При установке буфера в структуре меняются значения полей, отвечающих за буфер (см. рисунок \ref{img:d1p1}).
+
+\imgw{150mm}{d1p1}{Изменение полей структуры \texttt{FILE *fs1} при установке буфера}
+
+\clearpage
+
+Следующий интересующий нас вызов --- вызов функции стандартной библиотеки \texttt{fscanf()}. Первый раз он вызывается для \texttt{fs1} указателя на структуру \texttt{FILE}. При вызове \texttt{fscanf()} буфер \texttt{fs1} заполняется полностью, так как был выбран режим \texttt{\_IOFBF} (полная буферизация). В структуре \texttt{struct file}, соответствующей дескриптору \texttt{fd}, поле \texttt{f\_pos} увеличивается на 20 (из файла считалось 20 символов во время вызова \texttt{fscanf()}, чтобы заполнить буфер структуры \texttt{fs1}). Буфер \texttt{fs1} после 1 вызова \texttt{fscanf()} можно увидеть на рисунке \ref{img:d2p1}. В нем видно, что буферизовался алфавит до буквы 't'.
+
+\imgw{150mm}{d2p1}{Изменение полей структуры \texttt{FILE *fs1} при первом вызове \texttt{fscanf()}}
+
+Когда \texttt{fscanf()} вызывается для \texttt{fs2} (учитывая, что структура \texttt{fs1} считала все символы до 't' и \texttt{fs2} имеет один файловый дескриптор со структурой \texttt{fs1}) буферизуются все символы после 't'. На рисунке \ref{img:d3p1} показано изменение полей структуры \texttt{FILE *fs2}.
+
+\imgw{150mm}{d3p1}{Изменение полей структуры \texttt{FILE *fs2} при первом вызове \texttt{fscanf()}}
+
+Далее при следующих вызовах \texttt{fscanf()} для символов, символы будут браться из буфера до тех пор, пока он не станет пустым. Когда символы в буфере кончатся, структуры возвращают \texttt{EOF}, так как весь файл был прочитан (был дочитан структурой \texttt{fs2}).
+
+\chapter{Вторая программа}
+
+\section{Код}
+
+\subsection{Один поток}
+
+\begin{lstinputlisting}[
+        style=cstyle,
+        caption={Вторая программа с одним потоком},
+        label={lst:2}
+    ]{../src/p2.c}
+\end{lstinputlisting}
+
+\subsection{Два потока}
+
+\begin{lstinputlisting}[
+        style=cstyle,
+        caption={Вторая программа с двумя потоками},
+        label={lst:2mult}
+    ]{../src/p2mult.c}
+\end{lstinputlisting}
+
+\clearpage
+
+\section{Результат и анализ}
+
+\subsection{Связь структур во 2 программе}
+
+\imgw{170mm}{sp2}{Связь структур данных во 2 программе}
+
+\subsection{С одним потоком}
+
+\imgw{150mm}{p2}{Результат работы 2 программы с 1 потоком}
+
+\subsection{С двумя потоками}
+
+\imgw{150mm}{p2mult}{Результат работы 2 программы с 2 потоками}
+
+\subsection{Анализ}
+
+Во второй программе работа с файлом происходит напрямую через файловые дескрипторы, но так как дескрипторы создаются дважды (см. рисунок \ref{img:d1p2}, дескрипторы разные), то в программе имеются 2 различные \texttt{struct file}, имеющие одинаковые поля \texttt{struct inode *f\_inode}. Так как структуры разные, то посимвольная печать просто выведет содержание файла дважды, причем в однопоточной реализации вывод будет вида 'AAbbcc...', а в случае с многопоточной реализацией вывод второго потока начнется чуть позже (так как на создание потока требуется время), поэтому содержимое файла будет полностью дважды, но выводы потоков перемешаются (что можно увидеть в результате работы для многопоточной реализации).
+
+\imgw{150mm}{d1p2}{Разные дескрипторы в программе 2}
+
+\chapter{Третья программа}
+
+\section{Код}
+
+\subsection{Один поток}
+
+\begin{lstinputlisting}[
+        style=cstyle,
+        caption={Третья программа с одним потоком},
+        label={lst:3}
+    ]{../src/p3.c}
+\end{lstinputlisting}
+
+\subsection{Два потока}
+
+\begin{lstinputlisting}[
+        style=cstyle,
+        caption={Третья программа с двумя потоками},
+        label={lst:3mult}
+    ]{../src/p3mult.c}
+\end{lstinputlisting}
+
+\clearpage
+\section{Результат и анализ}
+
+\subsection{Связь структур в 3 программе}
+
+\imgw{170mm}{sp3}{Связь структур данных в 3 программе}
+
+\subsection{С одним потоком}
+
+\imgw{150mm}{p3}{Результат работы 3 программы с 1 потоком}
+
+\subsection{С двумя потоками}
+
+\imgw{150mm}{p3mult}{Результат работы 3 программы с 2 потоками}
+
+\subsection{Анализ}
+
+В 3 программе работа с файлом происходит с помощью функций стандартной библиотеки и структур \texttt{FILE *}. С помощью функции \texttt{fopen()} файл \texttt{alphabet.txt} открывается дважды на запись (\texttt{mode = 'w'}). При создании структуры не обладают никаким буфером (см. рисунок \ref{img:d1p3}). 
+
+\imgw{150mm}{d1p3}{Изначальное состояние структур \texttt{FILE *fd1, *fd2}}
+
+Буфер создается при первой операции записи, размер буфера = 4096 байт (4 Кб, размер 1 страницы памяти). Изменение полей стуктуры при первой записи можно увидеть на рисунке \ref{img:d2p3}.
+
+\imgw{150mm}{d2p3}{Изменение полей структуры \texttt{fd1} при первой записи}
+
+В конце работы программы делается вызов функции стандартной библиотеки \texttt{fclose()}. Во время этого вызова в нашей программе содержимое буфера переносится в файл (в общем случае это может происходить по одной из 3 причин: буфер полон, вызван \texttt{fflush()}, вызван \texttt{fclose()}). Так как \texttt{fclose(fd2)} вызывается позже, содержимое файла перепишется содержимым буфера структуры \texttt{fd2}. На рисунке \ref{img:d3p3} можно посмотреть, как меняется содержимое файла, на рисунках \ref{img:d4p3} и \ref{img:d5p3} можно посмотреть, как меняются поля структур \texttt{fd1}, \texttt{fd2} при вызове \texttt{fclose()}.
+
+\imgw{150mm}{d3p3}{Изменение содержимого файла при вызовах \texttt{fclose()}}
+
+\imgw{150mm}{d4p3}{Изменение полей структуры \texttt{fd1} вызове \texttt{fclose(fd1)}}
+
+\imgw{150mm}{d5p3}{Изменение полей структуры \texttt{fd2} вызове \texttt{fclose(fd2)}}
+
+\clearpage
+
+Замечания:
+
+\begin{itemize}
+    \item Если не вызвать \texttt{fclose}, на моей системе содержимое буфера дескриптора с меньшим значением будет записано в файл.
+    \item Если один из дескрипторов сдвинуть (через \texttt{fseek}), то перезапишутся только пересекающие диапазоны.
+\end{itemize}
