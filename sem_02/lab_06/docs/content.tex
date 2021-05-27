@@ -1,0 +1,103 @@
+\section*{Используемые в процессе работы структуры}
+
+Структура \texttt{struct filename} представлена в файле \texttt{include/linux/fs.h}:
+
+\begin{lstlisting}[style=cstyle]
+struct filename {
+    const char          *name;  /* pointer to actual string */
+    const __user char   *uptr;  /* original userland pointer */
+    int                 refcnt;
+    struct audit_names  *aname;
+    const char          iname[];
+};
+\end{lstlisting}
+
+Структура \texttt{struct open\_flags} представлена в файле \texttt{/fs/internal.h}:
+
+\begin{lstlisting}[style=cstyle]
+struct open_flags {
+    int open_flag;
+    umode_t mode;
+    int acc_mode;
+    int intent;
+    int lookup_flags;
+};
+\end{lstlisting}
+
+Стуктура \texttt{struct nameidata} представлена в файле \texttt{/fs/namei.c}:
+
+\begin{lstlisting}[style=cstyle]
+#define EMBEDDED_LEVELS 2
+struct nameidata {
+    struct path     path;
+    struct qstr     last;
+    struct path     root;
+    struct inode    *inode; /* path.dentry.d_inode */
+    unsigned int    flags;
+    unsigned        seq, m_seq, r_seq;
+    int             last_type;
+    unsigned        depth;
+    int             total_link_count;
+    struct saved {
+        struct path link;
+        struct delayed_call done;
+        const char *name;
+        unsigned seq;
+    } *stack, internal[EMBEDDED_LEVELS];
+    struct filename *name;
+    struct nameidata *saved;
+    unsigned        root_seq;
+    int             dfd;
+    kuid_t          dir_uid;
+    umode_t         dir_mode;
+} __randomize_layout;
+\end{lstlisting}
+
+\section*{Флаги системного вызова \texttt{open()}}
+
+\texttt{O\_EXEC} --- открыть только для выполнения (результат не определен, при открытии директории).
+
+\texttt{O\_RDONLY} --- открыть только на чтение.
+
+\texttt{O\_RDWR} --- открыть на чтение и запись.
+
+\texttt{O\_SEARCH} --- открыть директорию только для поиска (результат не определен, при использовании с файлами, не являющимися директорией).
+
+\texttt{O\_WRONLY} --- открыть только на запись.
+
+\texttt{O\_APPEND} --- файл открывается в режиме добавления, перед каждой операцией записи файловый указатель будет устанавливаться в конец файла.
+
+\texttt{O\_CLOEXEC} --- включает флаг \texttt{close-on-exec} для нового файлового дескриптора, указание этого флага позволяет программе избегать дополнительных операций fcntl \texttt{F\_SETFD} для установки флага \texttt{FD\_CLOEXEC}.
+
+\texttt{O\_CREAT} --- если файл не существует, то он будет создан.
+
+\texttt{O\_DIRECTORY} --- если файл не является каталогом, то open вернёт ошибку.
+
+\texttt{O\_DSYNC} --- файл открывается в режиме синхронного ввода-вывода (все операции записи для соответствующего дескриптора файла блокируют вызывающий процесс до тех пор, пока данные не будут физически записаны).
+
+\texttt{O\_EXCL} --- если используется совместно с \texttt{O\_CREAT}, то при наличии уже созданного файла вызов завершится ошибкой.
+
+\texttt{O\_NOCTTY} --- если файл указывает на терминальное устройство, то оно не станет терминалом управления процесса, даже при его отсутствии.
+
+\texttt{O\_NOFOLLOW} --- если файл является символической ссылкой, то open вернёт ошибку.
+
+\texttt{O\_NONBLOCK} --- файл открывается, по возможности, в режиме non-blocking, то есть никакие последующие операции над дескриптором файла не заставляют в дальнейшем вызывающий процесс ждать.
+
+\texttt{O\_RSYNC} --- операции записи должны выполняться на том же уровне, что и \texttt{O\_SYNC}.
+
+\texttt{O\_SYNC} --- файл открывается в режиме синхронного ввода-вывода (все операции записи для соответствующего дескриптора файла блокируют вызывающий процесс до тех пор, пока данные не будут физически записаны).
+
+\texttt{O\_TRUNC} --- если файл уже существует, он является обычным файлом и заданный режим позволяет записывать в этот файл, то его длина будет урезана до нуля.
+
+\texttt{O\_LARGEFILE} --- позволяет открывать файлы, размер которых не может быть представлен типом off\_t (long).
+
+\texttt{O\_TMPFILE} --- при наличии данного флага создаётся неименованный временный файл.
+
+\imgw{175mm}{open}{Схема алгоритма работы системного вызова \texttt{open}}
+\imgw{140mm}{build_open_flags}{Схема алгоритма работы функции \texttt{build\_open\_flags}}
+\imgw{175mm}{getname_flags}{Схема алгоритма работы функции \texttt{getname\_flags}}
+\imgw{175mm}{alloc_fd}{Схема алгоритма работы функции \texttt{alloc\_fd}}
+\imgw{175mm}{path_openat}{Схема алгоритма работы функции \texttt{path\_openat}}
+\imgw{175mm}{do_last}{Схема алгоритма работы функции \texttt{do\_last}}
+\imgw{175mm}{lookup_open}{Схема алгоритма работы функции \texttt{lookup\_open}}
+\imgw{140mm}{nameidata}{Схема алгоритма работы функций \texttt{set\_nameidata} и \texttt{restore\_nameidata}}
